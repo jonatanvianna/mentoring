@@ -4,77 +4,79 @@ from pymongo import MongoClient
 from datetime import datetime
 
 
-class Pessoa:
-    def __init__(self, nome, sobrenome, matricula, data_nascimento, salario, socio):
-        self.nome = nome
-        self.sobrenome = sobrenome
-        self.matricula = matricula
-        self.data_nascimento = data_nascimento
-        self.salario = salario
-        self.socio = socio
+class Person:
+    def __init__(self, name, surname, id_number, birth_date, salary, associate):
+        self.name = name
+        self.surname = surname
+        self.id_number = id_number
+        self.birth_date = birth_date
+        self.salary = salary
+        self.associate = associate
 
     # crud
     def insert(self):
-        insert_result = db.pessoa.insert_one(
+        insert_result = db.person.insert_one(
             {
-                "nome": self.nome,
-                "sobrenome": self.sobrenome,
-                "matricula": self.matricula,
-                "data_nascimento": datetime.strptime(self.data_nascimento, "%d-%m-%Y"),
-                "salario": self.salario,
-                "socio": self.socio
+                "name": self.name,
+                "surname": self.surname,
+                "id_number": self.id_number,
+                "birth_date": datetime.strptime(self.birth_date, "%Y-%m-%d"),
+                "salary": self.salary,
+                "associate": self.associate
             }
         )
         return insert_result
 
     def read_by_name(self):
-        cursor = db.pessoa.find_one({'nome': self.nome})
+        cursor = db.person.find_one({'name': self.name})
         return cursor
 
     @staticmethod
-    def update_by_name(nome, novo_nome):
-        update_result = db.pessoa.update_one({"nome": nome}, {"$set": {"nome": novo_nome}})
+    def update_by_name(name, new_name):
+        update_result = db.person.update_one({"nome": name}, {"$set": {"nome": new_name}})
         return update_result
 
     def delete_by_name(self):
-        delete_result = db.pessoa.delete_one({'nome': self.nome})
+        delete_result = db.person.delete_one({'name': self.name})
         return delete_result
 
     def __str__(self):
-        return"Nome: {} {}\n" \
-              "Nascimento: {}\n" \
-              "Matricula: {}\n" \
-              "Salario {}\n" \
-              "Socio {}".format(self.nome, self.sobrenome, self.data_nascimento,
-                                self.matricula, self.salario, ("Sim" if self.socio else "Não"))
+        return"Name: {} {}\n" \
+              "Birth Date: {}\n" \
+              "ID Number: {}\n" \
+              "Salary {}\n" \
+              "Associate {}".format(self.name, self.surname, self.birth_date,
+                                    self.id_number, self.salary, ("Yes" if self.associate else "No"))
 
 
 if __name__ == "__main__":
-    # Cria objeto Pessoa
-    p1 = Pessoa("Ronnie", "James Dio", 30001, "10-07-1942", 100000.0, True)
-    p2 = Pessoa("Celes", "Chere", 20001, "20-07-1989", 70000.0, True)
-    p3 = Pessoa("Kefka", "Palazzo", 10001, "20-07-1980", 50000.0, False)
+    # Creates object Person
+    p1 = Person("Ronnie", "James Dio", 30001, "1942-07-10", 100000.0, True)
+    p2 = Person("Celes", "Chere", 20001, "1988-07-20", 70000.0, True)
+    p3 = Person("Kefka", "Palazzo", 10001, "1980-07-20"
+                                           ""
+                                           "", 50000.0, False)
 
-    # instancia Mongo client com os parametros de conexão, (sem pswd e user)
+    # instanciates Mongo client with connection parameters, (no pswd and user)
     client = MongoClient('localhost', 27017)
 
-    # Objeto Database <class 'pymongo.database.Database'>
-    db = client.pessoa
+    # Objetc Database <class 'pymongo.database.Database'>
+    db = client.person
 
-    # Insert Pessoas
-    # p1.insert()
-    # p2.insert()
-    # p3.insert()
+    # Insert each Person
+    p1.insert()
+    p2.insert()
+    p3.insert()
 
-    # Update
+    # Update Example
     # u = p2.update_by_name("Jonatan", "Celes")
 
     # Read
     # print(p2.read_by_name())
 
     # Delete
-    p3.delete_by_name()
+    # p3.delete_by_name()
 
-    c = db.pessoa.find()
+    c = db.person.find()
     for i in c:
         print(i)
