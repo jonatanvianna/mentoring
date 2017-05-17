@@ -2,7 +2,7 @@
 
 from pymongo import MongoClient
 from datetime import datetime
-import Flask
+
 
 class Person:
     def __init__(self, name, surname, id_number, birth_date, salary, associate):
