@@ -1,40 +1,28 @@
 # coding: utf-8
 
-from flask import Flask
-from flask import jsonify
-from flask import request
-# from flask_pymongo import PyMongo
+from flask import Flask, jsonify, request
 from pymongo import MongoClient
 
+
 app = Flask(__name__)
-
-# app.config['MONGO_DB_NAME'] = 'restbd'
-# app.config['MONGO_URI'] = 'mongodb://localhost:27017/restdb'
-
-# mongo = PyMongo(app)
+client = MongoClient('mongodb://127.0.0.1:27017')
+mongo = client['restbd']
 
 
-client = MongoClient('localhost', 27017)
-mongo = client.restbd
-
-
-
-
-@app.route('/star', methods=['GET'])
+@app.route('/star/<name>', methods=['GET'])
 def get_one_star(name):
-    #return name
     s = mongo.stars.find_one({'name': name})
-    print(type(s))
     if s:
         output = {'name': s['name'], 'distance': s['distance']}
     else:
-        output = "No such name"
+        output = "No such name" 
     return jsonify({'result': output})
 
 
 @app.route('/', methods=['GET'])
 def hello_world():
     return "Surprise Motherfocka"
+
 
 @app.route('/all_stars/', methods=['GET'])
 def get_all_stars():

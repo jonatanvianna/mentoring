@@ -15,7 +15,7 @@ class Person:
 
     # crud
     def insert(self):
-        insert_result = db.person.insert_one(
+        insert_result = db.people.insert_one(
             {
                 "name": self.name,
                 "surname": self.surname,
@@ -28,16 +28,16 @@ class Person:
         return insert_result
 
     def read_by_name(self):
-        cursor = db.person.find_one({'name': self.name})
+        cursor = db.people.find_one({'name': self.name})
         return cursor
 
     @staticmethod
     def update_by_name(name, new_name):
-        update_result = db.person.update_one({"nome": name}, {"$set": {"nome": new_name}})
+        update_result = db.people.update_one({"nome": name}, {"$set": {"nome": new_name}})
         return update_result
 
     def delete_by_name(self):
-        delete_result = db.person.delete_one({'name': self.name})
+        delete_result = db.people.delete_one({'name': self.name})
         return delete_result
 
     def __str__(self):
@@ -51,22 +51,28 @@ class Person:
 
 if __name__ == "__main__":
     # Creates object Person
-    p1 = Person("Ronnie", "James Dio", 30001, "1942-07-10", 100000.0, True)
-    p2 = Person("Celes", "Chere", 20001, "1988-07-20", 70000.0, True)
-    p3 = Person("Kefka", "Palazzo", 10001, "1980-07-20"
-                                           ""
-                                           "", 50000.0, False)
+    p0 = Person("Celes", "Chere", 100, "1990-07-07", 50000.0, True)
+    p1 = Person("Kefka", "Palazzo", 101, "1975-08-05", 50000.0, False)
+    p2 = Person("Locke", "Cole", 102, "1991-05-07", 50000.0, False)
+    p3 = Person("Sabin", "Figaro", 103, "1983-01-29", 50000.0, False)
+    p4 = Person("Edgar", "Figaro", 104, "1981-09-30", 50000.0, True)
+    p5 = Person("Cyan", "Garamonde", 105, "1973-12-01", 50000.0, True)
+    p6 = Person("Setzer", "Gabbiani", 106, "1981-07-20", 50000.0, False)
+    p7 = Person("Relm", "Arrowny", 107, "2005-07-20", 50000.0, True)
+    p8 = Person("Stragus", "Magus", 108, "1950-03-30", 50000.0, True)
+    p9 = Person("Tina", "Branford", 109, "1999-10-18", 50000.0, True)
+
+    person_list = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9]
 
     # instanciates Mongo client with connection parameters, (no pswd and user)
     client = MongoClient('localhost', 27017)
 
     # Objetc Database <class 'pymongo.database.Database'>
-    db = client.person
+    db = client.people
 
     # Insert each Person
-    p1.insert()
-    p2.insert()
-    p3.insert()
+    for i in person_list:
+        i.insert()
 
     # Update Example
     # u = p2.update_by_name("Jonatan", "Celes")
@@ -77,6 +83,6 @@ if __name__ == "__main__":
     # Delete
     # p3.delete_by_name()
 
-    c = db.person.find()
+    c = db.people.find()
     for i in c:
         print(i)
