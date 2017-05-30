@@ -1,0 +1,14 @@
+<!doctype html>
+<title>All Characters</title>
+{% for character in characters %}
+<dl>
+    <dt><strong>Name:</strong> {{character.name}} {{character.surname}}</dt>
+    <dd><strong>Birth Date : </strong> {{character.birth_date.strftime("%Y/%m/%d")}}</dd>
+    <dd><strong>Species: </strong> {{character.species}}</dd>
+    <dd><strong>Health: </strong> {{character.health}}</dd>
+    <dd><strong>Mana: </strong> {{character.mana}}</dd>
+    <dd><strong>GP: </strong> {{character.gold_pieces}}</dd>
+    <dd><strong>Playable: </strong> {{character.playable}}</dd>
+    <br />
+</dl>
+{% endfor %}
