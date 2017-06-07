@@ -31,6 +31,21 @@ class Character:
         self.playable = playable
         self.game = game
 
+    def insert(self):
+        insert_result = mongo.db.characters.insert_one({
+                "name": self.name,
+                "surname": self.surname,
+                "birth_date": self.birth_date,
+                "species": self.species,
+                "health": self.health,
+                "mana": self.mana,
+                "gold_pieces": self.gold_pieces,
+                "playable": self.playable,
+                "game": self.game,
+        })
+
+        return insert_result
+
     def read_by_name(self):
         cursor = mongo.db.characters.find_one({'name': self.name})
         return cursor
@@ -48,7 +63,7 @@ class Character:
 # @app.route('/fill_in_db/', methods=['GET'])
 def fill_in_db():
     # Creates objects Characters
-    c0 = Character("Celes", "Chere", "1990-07-07", "Human", 9999, 9999, 50000.00, True, 'FFVI')
+    c0 = Character("Celes", "Chere", "1990-07-07", "Human", 9999, 9999, 50000.0, True, 'FFVI')
     c1 = Character("Kefka", "Palazzo", "1975-08-05", "Human", 9999, 9999, 666000.0, False, 'FFVI')
     c2 = Character("Locke", "Cole", "1991-05-07", "Human", 9999, 9999, 1000.0, False, 'FFVI')
     c3 = Character("Sabin", "Figaro", "1983-01-29", "Human", 9999, 9999,  900.0, False, 'FFVI')
@@ -102,22 +117,20 @@ def get_all_characters():
 @app.route('/character/<name>', methods=['GET'])
 def character(name=None):
     if name and request.method == 'GET':
-        all_chars = mongo.db.characters.find({'name': name})
-        output = []
-        if len(all_chars) > 1:
-            for characther in all_chars:
-                output.append({
-                    "_id": characther["_id"].__str__(),
-                    "name": characther["name"],
-                    "surname": characther["surname"],
-                    'birth_date': characther['birth_date'],
-                    'species': characther['species'],
-                    'health': characther['health'],
-                    'mana': characther['mana'],
-                    'gold_pieces': characther['gold_pieces'],
-                    "playable": characther["playable"],
-                    "game": characther["game"]
-                })
+        characther = mongo.db.characters.find({'name': name})
+        
+        output = {
+                '_id': characther['_id'].__str__(),
+                'name': characther['name'],
+                'surname': characther['surname'],
+                'birth_date': characther['birth_date'],
+                'species': characther['species'],
+                'health': characther['health'],
+                'mana': characther['mana'],
+                'gold_pieces': characther['gold_pieces'],
+                'playable': characther['playable'],
+                'game': characther['game']
+        }
 
         return jsonify({'result': output})
         # return jsonify({'result': dumps(all_char)})
@@ -125,6 +138,19 @@ def character(name=None):
 
 @app.route('/character', methods=['POST'])
 def create_characther():
+    """ Json Format for insert character
+    
+    {
+        "name":"Jonatan",
+        "surname":"Kopichenko",
+        "birth_date": "1981-07-20",
+        "species": "Human",
+        "health": 9999,
+        "mana": 9999,
+        "gold_pieces": 7000.0,
+        "playable": true,
+        "game": "Life"
+    }"""
     insert_result = mongo.db.characters.insert_one({
         'name': request.json['name'],
         'surname': request.json['surname'],
@@ -137,6 +163,7 @@ def create_characther():
         'game': request.json['game']
     })
     return "User inserted in DB: " + insert_result.__str__()
+
 
 
 if __name__ == "__main__":
