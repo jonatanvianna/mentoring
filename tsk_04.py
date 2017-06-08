@@ -2,6 +2,8 @@
 
 
 from datetime import datetime
+
+from bson import ObjectId
 from flask import Flask, jsonify, render_template, request
 from bson.json_util import dumps
 from flask_pymongo import PyMongo, ASCENDING
@@ -116,22 +118,48 @@ def get_all_characters():
 
 @app.route('/character/<name>', methods=['GET'])
 def character(name=None):
+    """Accepts 'name' or '_id' to realize the query
+        pattern: /character/Celes
+        pattern: /character/593874caddea8f568dd9b812
+    """
+    output = []
     if name and request.method == 'GET':
-        characther = mongo.db.characters.find({'name': name})
-        
-        output = {
-                '_id': characther['_id'].__str__(),
-                'name': characther['name'],
-                'surname': characther['surname'],
-                'birth_date': characther['birth_date'],
-                'species': characther['species'],
-                'health': characther['health'],
-                'mana': characther['mana'],
-                'gold_pieces': characther['gold_pieces'],
-                'playable': characther['playable'],
-                'game': characther['game']
-        }
+        try:
+            _id = ObjectId(name)
+            all_chars = mongo.db.characters.find({'_id': ObjectId(_id)})
+        except Exception as e:
+            all_chars = mongo.db.characters.find({'name': name})
 
+        if all_chars.count() > 1:
+            for characther in all_chars:
+                output.append({
+                    "_id": characther["_id"].__str__(),
+                    "name": characther["name"],
+                    "surname": characther["surname"],
+                    'birth_date': characther['birth_date'],
+                    'species': characther['species'],
+                    'health': characther['health'],
+                    'mana': characther['mana'],
+                    'gold_pieces': characther['gold_pieces'],
+                    "playable": characther["playable"],
+                    "game": characther["game"]
+                })
+        elif all_chars.count() == 1:
+            for char in all_chars:
+                output = {
+                    "_id": char["_id"].__str__(),
+                    "name": char["name"],
+                    "surname": char["surname"],
+                    'birth_date': char['birth_date'],
+                    'species': char['species'],
+                    'health': char['health'],
+                    'mana': char['mana'],
+                    'gold_pieces': char['gold_pieces'],
+                    "playable": char["playable"],
+                    "game": char["game"]
+                }
+        else:
+            return jsonify({'result': "No Results Found"})
         return jsonify({'result': output})
         # return jsonify({'result': dumps(all_char)})
 
@@ -163,7 +191,6 @@ def create_characther():
         'game': request.json['game']
     })
     return "User inserted in DB: " + insert_result.__str__()
-
 
 
 if __name__ == "__main__":
