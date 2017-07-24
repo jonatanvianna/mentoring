@@ -4,14 +4,40 @@
 
 	</head>
 	<body>
-		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+		<script src="https://unpkg.com/axios/dist/axios.min.js" type="application/javascript"></script>
 		<script>
-			axios.get('http://127.0.0.1:5000/character/5937039bddea8f17d4090cee')
-			  .then(function (response) {
-			    console.log(response);
-			  });
+			var r;
+			axios.get('http://127.0.0.1:5000/character/592b837fddea8f224b48b28d', crossDomain: true)
+			  .then(
+			  	function (response) {
+			      r = response;
+			  	}
+			  );
+
+			console.log(r)
 		</script>
 	</body>
 </html>
 
+<!--
+gnuwilliam [8:17 PM]
+Hey Jonatan, sorry about me being unavailable for all this time. I've been working a lot of different things, and t's hard to keep up with everything
 
+[8:18]
+I'm looking at your code, great progress
+
+[8:18]
+You're definitely on the right track
+
+[8:18]
+As for studying JS, I suggest you learn ES6 and how to use tools like webpack, npm/yarn, and a testing framework
+
+[8:19]
+This is a great book on ES6 https://leanpub.com/understandinges6/read
+
+[8:19]
+And it's free
+
+[8:19]
+As for webpack, and the others, I usually like to read their docs instead of following articles, because articles are always outdated
+-->

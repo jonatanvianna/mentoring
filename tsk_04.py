@@ -1,14 +1,11 @@
 # coding:utf8
 
-
 from datetime import datetime
-
-from bson import ObjectId
+from bson import objectid as ObjectId
 from flask import Flask, jsonify, render_template, request
 from bson.json_util import dumps
 from flask_pymongo import PyMongo, ASCENDING
 # from pymongo import MongoClient
-
 
 app = Flask(__name__)
 app.config['MONGO_DBNAME'] = 'game_characters'
