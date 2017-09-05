@@ -1,11 +1,12 @@
 # coding:utf8
 
 from datetime import datetime
-from bson import objectid as ObjectId
+from bson import objectid
 from flask import Flask, jsonify, render_template, request
-from bson.json_util import dumps
-from flask_pymongo import PyMongo, ASCENDING
+# from bson.json_util import dumps
+from flask_pymongo import PyMongo  # , ASCENDING
 # from pymongo import MongoClient
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['MONGO_DBNAME'] = 'game_characters'
@@ -13,6 +14,7 @@ app.config['MONGO_URI'] = 'mongodb://127.0.0.1:27017/game_characters'
 
 #: https://flask-pymongo.readthedocs.io/en/latest/
 mongo = PyMongo(app)
+CORS(app)
 
 # client = MongoClient('mongodb://127.0.0.1:27017')
 # mongo = client.game_characters
@@ -92,7 +94,7 @@ def hello(name="World"):
 
 @app.route('/', methods=['GET'])
 def get_all_characters():
-    all_chars = mongo.db.characters.find().sort([('name', ASCENDING)])
+    all_chars = mongo.db.characters.find()#.sort([('name', ASCENDING)])
     output = []
     for characther in all_chars:
         output.append({
@@ -122,8 +124,8 @@ def character(name=None):
     output = []
     if name and request.method == 'GET':
         try:
-            _id = ObjectId(name)
-            all_chars = mongo.db.characters.find({'_id': ObjectId(_id)})
+            _id = objectid(name)
+            all_chars = mongo.db.characters.find({'_id': objectid(_id)})
         except Exception as e:
             all_chars = mongo.db.characters.find({'name': name})
 
