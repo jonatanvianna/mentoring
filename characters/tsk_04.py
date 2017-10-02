@@ -23,17 +23,17 @@ CORS(app)
 
 class Character:
     def __init__(self, name, surname, birth_date, species, health, mana, gold_pieces, playable, game, picture_path, picture_file):
-        self.name = name
-        self.surname = surname
-        self.birth_date = birth_date
-        self.species = species
-        self.health = health
-        self.mana = mana
-        self.gold_pieces = gold_pieces
-        self.playable = playable
-        self.game = game
-        self.picture_path = picture_path
-        self.picture_file = picture_file
+            self.name = name
+            self.surname = surname
+            self.birth_date = birth_date
+            self.species = species
+            self.health = health
+            self.mana = mana
+            self.gold_pieces = gold_pieces
+            self.playable = playable
+            self.game = game
+            self.picture_path = picture_path
+            self.picture_file = picture_file
 
     def insert(self):
         insert_result = mongo.db.characters.insert_one({
