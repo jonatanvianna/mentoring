@@ -86,7 +86,7 @@ function CharList(props) {
 
 
 function getAllChars(){
-   return axios.get('http://127.0.0.1:5000/')
+   return axios.get('http://127.0.0.1:5000/characters')
       .then(function (r){
          let chars = r.data;
          ReactDOM.render(
@@ -100,7 +100,7 @@ function getAllChars(){
 }
 
 function getChar(){
-   return axios.get('http://127.0.0.1:5000/character/Celes')
+   return axios.get('http://127.0.0.1:5000/characters/59c32e3eddea8f24f9939f4f')
       .then(function (r){
          ReactDOM.render(
             <Char char={r.data} />,
