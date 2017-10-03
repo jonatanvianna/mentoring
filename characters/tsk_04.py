@@ -6,12 +6,14 @@
 # http://51elliot.blogspot.com.br/2014/04/rest-api-best-practices-http-and-crud.html
 # http://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
 # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+# https://stackoverflow.com/questions/21411497/flask-jsonify-a-list-of-objects
 
 from datetime import datetime, date
 from bson import objectid, ObjectId
 from bson.errors import InvalidId
 # from bson.json_util import dumps
 from flask import Flask, jsonify, render_template, request
+from flask.json import JSONEncoder
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from pymongo import MongoClient
 from flask_cors import CORS
@@ -32,8 +34,10 @@ chars_collection = client.game_characters.characters
 
 # TODO transformar s saida em __str__()
 
+
 class Character:
     def __init__(self, name, surname, birth_date, species, health, mana, gold_pieces, playable, game):
+            self.mid = None
             self.name = name
             self.surname = surname
             self.birth_date = birth_date
@@ -45,7 +49,6 @@ class Character:
             self.game = game
             self.picture_path = 'static/img/'
             self.picture_file = name.lower() + '_' + surname.lower() + '.png'
-
 
     def insert(self):
         insert_result = chars_collection.insert_one({
@@ -84,7 +87,6 @@ class Character:
         )
         return update_result
 
-
     def retrieve_by_name(self):
         cursor = chars_collection.find_one({'name': self.name})
         return cursor
@@ -92,7 +94,7 @@ class Character:
     @staticmethod
     def retrieve_by_id(char_id):
         r = chars_collection.find_one({'_id': char_id})
-        return r.__str__()
+        return r
 
     @staticmethod
     def update_name(name, new_name):
@@ -102,6 +104,29 @@ class Character:
     def delete_by_name(self):
         delete_result = chars_collection.delete_one({'name': self.name})
         return delete_result
+
+
+class CharJSONEncoder(JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Character):
+            print("entrou")
+            return {
+                "_id": o.mid,
+                "name": o.name,
+                "surname": o.surname,
+                "birth_date": o.birth_date.date().isoformat(),
+                "species": o.species,
+                "health": o.health,
+                "mana": o.mana,
+                "gold_pieces": o.gold_pieces,
+                "playable": o.playable,
+                "game": o.game,
+                "picture_path": o.picture_path,
+                "picture_file": o.picture_file
+            }
+        return super(CharJSONEncoder, self).default(o)
+
+app.json_encoder = CharJSONEncoder
 
 
 @app.route('/fill_in_db', methods=['GET'])
@@ -223,11 +248,12 @@ def character(char_id=None):
     else:
         if request.method == 'GET':
             c = Character.retrieve_by_id(char_id)
-            # print("Char: ", c )
+            print("Char: ", c)
             if c is not None:
-                c['_id'] = c['_id'].__str__()
-                c['birth_date'] = c['birth_date'].date().isoformat()
+                # c['_id'] = c['_id'].__str__()
+                # c['birth_date'] = c['birth_date'].date().isoformat()
                 return jsonify("200 OK", c)
+                # return jsonify(c)
             return jsonify("404 Not Found", c)
 
         elif request.method == 'PUT':
