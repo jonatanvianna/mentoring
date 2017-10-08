@@ -7,11 +7,13 @@
 # http://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
 # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 # https://stackoverflow.com/questions/21411497/flask-jsonify-a-list-of-objects
+# http://api.mongodb.com/python/current/api/bson/json_util.html
+# https://stackoverflow.com/questions/16586180/typeerror-objectid-is-not-json-serializable#
 
 from datetime import datetime, date
 from bson import objectid, ObjectId
 from bson.errors import InvalidId
-# from bson.json_util import dumps
+from bson import json_util
 from flask import Flask, jsonify, render_template, request
 from flask.json import JSONEncoder
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
@@ -252,9 +254,9 @@ def character(char_id=None):
             if c is not None:
                 # c['_id'] = c['_id'].__str__()
                 # c['birth_date'] = c['birth_date'].date().isoformat()
-                return jsonify("200 OK", c)
+                return json_util.dumps(c)
                 # return jsonify(c)
-            return jsonify("404 Not Found", c)
+            return json_util.dumps(c)
 
         elif request.method == 'PUT':
 
@@ -295,8 +297,6 @@ def character(char_id=None):
     #     print("Erro :", e, char_id)
     #     output = jsonify({'result': "400 bad request. Some Error whit the ID you passed."})
     #     return output
-
-
 
 
 if __name__ == "__main__":
