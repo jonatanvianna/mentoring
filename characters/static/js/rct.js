@@ -22,9 +22,10 @@ function Char(char){
             </figure>
             <div className="char" className="media-content">
                <div  className="content">
+                  <input type="hidden" value={char._id.$oid} />
                   <p>
                      <strong>{char.name} {char.surname}</strong><br/>
-                     {char.species}, Born in {char.birth_date},<br />
+                     {char.species}, Born in {char.birth_date.$date},<br />
                      Is a {isPlayable} character from {char.game} game.<br />
                      <small>
                         Life status: health: {char.health}, mana: {char.mana}<br />
@@ -100,8 +101,9 @@ function getAllChars(){
 }
 
 function getChar(){
-   return axios.get('http://127.0.0.1:5000/characters/59c32e3eddea8f24f9939f4f')
+   return axios.get('http://127.0.0.1:5000/characters/59daa2f4ddea8f627c1b13b8')
       .then(function (r){
+      console.log(r.data)
          ReactDOM.render(
             <Char char={r.data} />,
             document.getElementById('chars')

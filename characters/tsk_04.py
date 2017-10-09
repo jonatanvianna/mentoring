@@ -6,19 +6,23 @@
 # http://51elliot.blogspot.com.br/2014/04/rest-api-best-practices-http-and-crud.html
 # http://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
 # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-# https://stackoverflow.com/questions/21411497/flask-jsonify-a-list-of-objects
+
+
+# BSON X JSON
 # http://api.mongodb.com/python/current/api/bson/json_util.html
 # https://stackoverflow.com/questions/16586180/typeerror-objectid-is-not-json-serializable#
+# https://stackoverflow.com/documentation/pymongo/9348/converting-between-bson-and-json#t=201710082232030056851
 
 from datetime import datetime, date
-from bson import objectid, ObjectId
+from bson import ObjectId
 from bson.errors import InvalidId
 from bson import json_util
+from bson.json_util import DEFAULT_JSON_OPTIONS
 from flask import Flask, jsonify, render_template, request
-from flask.json import JSONEncoder
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from pymongo import MongoClient
 from flask_cors import CORS
+
 
 app = Flask(__name__)
 # app.config['MONGO_DBNAME'] = 'game_characters'
@@ -34,12 +38,14 @@ CORS(app)
 client = MongoClient('mongodb://127.0.0.1:27017')
 chars_collection = client.game_characters.characters
 
+# conf da saida de data
+DEFAULT_JSON_OPTIONS.datetime_representation = json_util.DatetimeRepresentation.ISO8601
+
 # TODO transformar s saida em __str__()
 
 
 class Character:
     def __init__(self, name, surname, birth_date, species, health, mana, gold_pieces, playable, game):
-            self.mid = None
             self.name = name
             self.surname = surname
             self.birth_date = birth_date
@@ -108,27 +114,6 @@ class Character:
         return delete_result
 
 
-class CharJSONEncoder(JSONEncoder):
-    def default(self, o):
-        if isinstance(o, Character):
-            print("entrou")
-            return {
-                "_id": o.mid,
-                "name": o.name,
-                "surname": o.surname,
-                "birth_date": o.birth_date.date().isoformat(),
-                "species": o.species,
-                "health": o.health,
-                "mana": o.mana,
-                "gold_pieces": o.gold_pieces,
-                "playable": o.playable,
-                "game": o.game,
-                "picture_path": o.picture_path,
-                "picture_file": o.picture_file
-            }
-        return super(CharJSONEncoder, self).default(o)
-
-app.json_encoder = CharJSONEncoder
 
 
 @app.route('/fill_in_db', methods=['GET'])
@@ -250,16 +235,10 @@ def character(char_id=None):
     else:
         if request.method == 'GET':
             c = Character.retrieve_by_id(char_id)
-            print("Char: ", c)
             if c is not None:
-                # c['_id'] = c['_id'].__str__()
-                # c['birth_date'] = c['birth_date'].date().isoformat()
                 return json_util.dumps(c)
-                # return jsonify(c)
-            return json_util.dumps(c)
-
+            return json_util.dumps({'404': 'Not found', 'result': c})
         elif request.method == 'PUT':
-
             c = Character(
                  request.json['name'],
                  request.json['surname'],
@@ -272,16 +251,17 @@ def character(char_id=None):
                  request.json['game'],
             )
             result = c.update(char_id, c)
-            print(result)
-            print(result.acknowledged)
-            print(result.raw_result)
-            print(result.upserted_id)
-            print(result.modified_count)
-            print(result.matched_count)
+            # print(result)
+            # print(result.acknowledged)
+            # print(result.raw_result)
+            # print(result.upserted_id)
+            # print(result.modified_count)
+            # print(result.matched_count)
             # c['_id'] = c['_id'].__str__()
             # c['birth_date'] = c['birth_date'].date().isoformat()
-            output = jsonify("200 OK", c.retrieve_by_id(char_id))
-            return output
+            # output = jsonify("200 OK", c.retrieve_by_id(char_id))
+
+            return json_util.dumps({'200': 'OK'})
 
         elif request.method == 'PATCH':
             pass
