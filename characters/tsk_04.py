@@ -18,7 +18,7 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from bson import json_util
 from bson.json_util import DEFAULT_JSON_OPTIONS
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, Response
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from pymongo import MongoClient
 from flask_cors import CORS
@@ -40,6 +40,8 @@ chars_collection = client.game_characters.characters
 
 # conf da saida de data
 DEFAULT_JSON_OPTIONS.datetime_representation = json_util.DatetimeRepresentation.ISO8601
+DEFAULT_JSON_OPTIONS.json_mode = 1
+
 
 # TODO transformar s saida em __str__()
 
@@ -114,8 +116,6 @@ class Character:
         return delete_result
 
 
-
-
 @app.route('/fill_in_db', methods=['GET'])
 def fill_in_db():
     # Creates objects Characters
@@ -171,24 +171,11 @@ def characters():
     if request.method == 'GET':
         characters = chars_collection.find().sort([('species', ASCENDING)])
         output = []
-        for character in characters:
-            output.append({
-                "_id": character["_id"].__str__(),
-                "name": character["name"],
-                "surname": character["surname"],
-                "birth_date": character["birth_date"].date().isoformat(),
-                "species": character["species"],
-                "health": character["health"],
-                "mana": character["mana"],
-                "gold_pieces": character["gold_pieces"],
-                "playable": character["playable"],
-                "game": character["game"],
-                "picture_path": character["picture_path"],
-                "picture_file": character["picture_file"]
-            })
+        for char in characters:
+            output.append(char)
+        return Response(json_util.dumps(output), mimetype='application/json', status=200)
 
-        # if OK, Return 200 OK
-        return jsonify(output)
+
     elif request.method == 'POST':
         try:
             c = Character(
@@ -207,7 +194,7 @@ def characters():
             return jsonify({'result': "400 Bad Request"})
         else:
             result = c.insert()
-            return jsonify({'result': "201 Created"})
+            return Response(response=json_util.dumps({'result': "201 Created"}), mimetype='application/json')
 
 
 # GET /characters/12 - Retrieves a specific character
@@ -236,8 +223,9 @@ def character(char_id=None):
         if request.method == 'GET':
             c = Character.retrieve_by_id(char_id)
             if c is not None:
-                return json_util.dumps(c)
+                return Response(json_util.dumps(c), mimetype='application/json')
             return json_util.dumps({'404': 'Not found', 'result': c})
+
         elif request.method == 'PUT':
             c = Character(
                  request.json['name'],
@@ -251,7 +239,8 @@ def character(char_id=None):
                  request.json['game'],
             )
             result = c.update(char_id, c)
-            # print(result)
+
+            print(result)
             # print(result.acknowledged)
             # print(result.raw_result)
             # print(result.upserted_id)
@@ -261,22 +250,21 @@ def character(char_id=None):
             # c['birth_date'] = c['birth_date'].date().isoformat()
             # output = jsonify("200 OK", c.retrieve_by_id(char_id))
 
-            return json_util.dumps({'200': 'OK'})
+            if result.matched_count == 0:
+                return json_util.dumps({'404': 'Not found'})
+            if result.modified_count == 1:
+                return json_util.dumps({'200': 'OK', 'modified_count': result.modified_count})
+            elif result.modified_count == 0:
+                return json_util.dumps({'201': 'No content', 'modified_count': result.modified_count})
 
         elif request.method == 'PATCH':
             pass
         elif request.method == 'DELETE':
-            chars_collection.delete_one({'_id': char_id})
-            output = jsonify({'result': "204 No content."})
-            return output
-    #     else:
-    #         output = jsonify({'result': "404 Not Found. _id Not Found"})
-    #         return output
-    #
-    # except Exception as e:
-    #     print("Erro :", e, char_id)
-    #     output = jsonify({'result': "400 bad request. Some Error whit the ID you passed."})
-    #     return output
+            result = chars_collection.delete_one({'_id': char_id})
+            if result.deleted_count == 1:
+                return Response(mimetype='application/json', status_code=204)
+            elif result.deleted_count == 0:
+                return Response(mimetype='application/json', status=404)
 
 
 if __name__ == "__main__":

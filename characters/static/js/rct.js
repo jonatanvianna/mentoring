@@ -7,7 +7,6 @@
 
 
 function Char(char){
-
    if (typeof(char.char) === 'object'){
       var char = char.char
    }
@@ -22,10 +21,10 @@ function Char(char){
             </figure>
             <div className="char" className="media-content">
                <div  className="content">
-                  <input type="hidden" value={char._id.$oid} />
+
                   <p>
                      <strong>{char.name} {char.surname}</strong><br/>
-                     {char.species}, Born in {char.birth_date.$date},<br />
+                     {char.species}, Born in {char.birth_date},<br />
                      Is a {isPlayable} character from {char.game} game.<br />
                      <small>
                         Life status: health: {char.health}, mana: {char.mana}<br />
@@ -61,19 +60,20 @@ function Char(char){
 
 function CharList(props) {
    var chars = props.chars;
-
+   console.log(chars  );
+   console.log(typeof(chars));
   return (
      <div>
         {chars.map(
             (char) =>
                <Char
-                  key = {char._id}
+                  key = {char._id.$oid.toString()}
                   picture_path = {char.picture_path}
                   picture_file = {char.picture_file}
                   name = {char.name}
                   surname = {char.surname}
                   species= {char.species}
-                  birth_date = {char.birth_date}
+                  birth_date = {char.birth_date.$date.toString()}
                   playable = {char.playable}
                   game = {char.game}
                   health = {char.health}
@@ -90,6 +90,14 @@ function getAllChars(){
    return axios.get('http://127.0.0.1:5000/characters')
       .then(function (r){
          let chars = r.data;
+//         console.log(typeof(chars));
+//         let char_arr = [{'joe': 'vianna'}];
+//         console.log(typeof(char_arr));
+//         for(var i = 0; i < chars.length; i++){
+//            var a = 1;
+//
+//
+//         }
          ReactDOM.render(
             <CharList chars={chars}/>,
             document.getElementById('chars')
