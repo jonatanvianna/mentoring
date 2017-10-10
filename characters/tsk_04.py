@@ -38,12 +38,9 @@ CORS(app)
 client = MongoClient('mongodb://127.0.0.1:27017')
 chars_collection = client.game_characters.characters
 
-# conf da saida de data
+# json_util datetime config
 DEFAULT_JSON_OPTIONS.datetime_representation = json_util.DatetimeRepresentation.ISO8601
 DEFAULT_JSON_OPTIONS.json_mode = 1
-
-
-# TODO transformar s saida em __str__()
 
 
 class Character:
@@ -175,7 +172,6 @@ def characters():
             output.append(char)
         return Response(json_util.dumps(output), mimetype='application/json', status=200)
 
-
     elif request.method == 'POST':
         try:
             c = Character(
@@ -205,12 +201,15 @@ def characters():
 def character(char_id=None):
     """
     :GET (retrieve):\n
-    :param char_id: The id of the character\n
-    :returns: A json formatted representation of the character\n
+    :param: char_id The id of the character\n
+    :returns: A json formatted representation of the character and 200 OK.\n
+              If not found, 404 NOT FOUND.\n
+              If bad oid is passed, the error and a 400 BAD REQUEST.
     :URI example: /characters/592b837fddea8f224b48b28d\n
+
     :PUT (update):\n
-    :param char_id: The id of the character\n
-    :returns: If Update is OK, returns 200 OK. If it fails return
+    :param: char_id The id of the character\n
+    :returns: If Update is OK, returns 200 OK. If not found 404. If bad oid is passed, returns 400.
     :URI example: /characters/592b837fddea8f224b48b28d\n
     :DELETE:\n
     """
@@ -218,13 +217,15 @@ def character(char_id=None):
         # None if char  wasn't found
         char_id = ObjectId(char_id)
     except InvalidId as e:
-        return jsonify("400 Bad Request", e.__str__())
+        return Response(response=json_util.dumps(e.__str__()), mimetype='application/json', status=400)
+    except TypeError as e:
+        return Response(response=json_util.dumps(e.__str__()), mimetype='application/json', status=400)
     else:
         if request.method == 'GET':
             c = Character.retrieve_by_id(char_id)
             if c is not None:
-                return Response(json_util.dumps(c), mimetype='application/json')
-            return json_util.dumps({'404': 'Not found', 'result': c})
+                return Response(json_util.dumps(c), mimetype='application/json', status=200)
+            return Response(mimetype='application/json', status=404)
 
         elif request.method == 'PUT':
             c = Character(
@@ -262,7 +263,7 @@ def character(char_id=None):
         elif request.method == 'DELETE':
             result = chars_collection.delete_one({'_id': char_id})
             if result.deleted_count == 1:
-                return Response(mimetype='application/json', status_code=204)
+                return Response(mimetype='application/json', status=204)
             elif result.deleted_count == 0:
                 return Response(mimetype='application/json', status=404)
 
