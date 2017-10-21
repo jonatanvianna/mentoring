@@ -13,7 +13,8 @@
 # https://stackoverflow.com/questions/16586180/typeerror-objectid-is-not-json-serializable#
 # https://stackoverflow.com/documentation/pymongo/9348/converting-between-bson-and-json#t=201710082232030056851
 
-from datetime import datetime, date
+from datetime import datetime
+from time import sleep
 from bson import ObjectId
 from bson.errors import InvalidId
 from bson import json_util
@@ -141,10 +142,9 @@ def fill_in_db():
     else:
         return "Error in fill DB"
 
+
 # GET /tickets - Retrieves a list of tickets
 # POST /tickets - Creates a new ticket
-
-
 @app.route('/characters', methods=['GET', 'POST'])
 def characters():
     """
@@ -167,10 +167,10 @@ def characters():
              }"""
     if request.method == 'GET':
         characters = chars_collection.find().sort([('species', ASCENDING)])
-        output = []
+        result = []
         for char in characters:
-            output.append(char)
-        return Response(json_util.dumps(output), mimetype='application/json', status=200)
+            result.append(char)
+        return Response(response=json_util.dumps({'result': result}), mimetype='application/json', status=200)
 
     elif request.method == 'POST':
         try:
@@ -187,10 +187,10 @@ def characters():
             )
         except Exception as e:
             print(e)
-            return jsonify({'result': "400 Bad Request"})
+            return Response(response=json_util.dumps({'result': e.__str__()}), mimetype='application/json', status=400)
         else:
             result = c.insert()
-            return Response(response=json_util.dumps({'result': "201 Created"}), mimetype='application/json')
+            return Response(response=json_util.dumps({'result': "201 Created"}), mimetype='application/json', status=201)
 
 
 # GET /characters/12 - Retrieves a specific character
@@ -214,18 +214,18 @@ def character(char_id=None):
     :DELETE:\n
     """
     try:
-        # None if char  wasn't found
+        # char_id receives None if character wasn't found
         char_id = ObjectId(char_id)
     except InvalidId as e:
-        return Response(response=json_util.dumps(e.__str__()), mimetype='application/json', status=400)
+        return Response(response=json_util.dumps({'result': e.__str__()}), mimetype='application/json', status=400)
     except TypeError as e:
-        return Response(response=json_util.dumps(e.__str__()), mimetype='application/json', status=400)
+        return Response(response=json_util.dumps({'result': e.__str__()}), mimetype='application/json', status=400)
     else:
         if request.method == 'GET':
             c = Character.retrieve_by_id(char_id)
             if c is not None:
-                return Response(json_util.dumps(c), mimetype='application/json', status=200)
-            return Response(mimetype='application/json', status=404)
+                return Response(response=json_util.dumps({'result': c}), mimetype='application/json', status=200)
+            return Response(json_util.dumps({'result': c}), mimetype='application/json', status=404)
 
         elif request.method == 'PUT':
             c = Character(
@@ -241,31 +241,27 @@ def character(char_id=None):
             )
             result = c.update(char_id, c)
 
-            print(result)
-            # print(result.acknowledged)
-            # print(result.raw_result)
-            # print(result.upserted_id)
-            # print(result.modified_count)
-            # print(result.matched_count)
-            # c['_id'] = c['_id'].__str__()
-            # c['birth_date'] = c['birth_date'].date().isoformat()
-            # output = jsonify("200 OK", c.retrieve_by_id(char_id))
-
             if result.matched_count == 0:
-                return json_util.dumps({'404': 'Not found'})
-            if result.modified_count == 1:
-                return json_util.dumps({'200': 'OK', 'modified_count': result.modified_count})
+                return Response(response=jsonify({'return': {'matched_count': result.matched_count}}),
+                                mimetype='application/json', status=404)
+            elif result.modified_count == 1:
+                return Response(response=jsonify({'result': {'modified_count': result.modified_count}}),
+                                mimetype='application/json', status=200)
             elif result.modified_count == 0:
-                return json_util.dumps({'201': 'No content', 'modified_count': result.modified_count})
+                return Response(response=jsonify({'result': {'modified_count': result.modified_count}}),
+                                mimetype='application/json', status=201)
 
         elif request.method == 'PATCH':
             pass
         elif request.method == 'DELETE':
             result = chars_collection.delete_one({'_id': char_id})
+
             if result.deleted_count == 1:
-                return Response(mimetype='application/json', status=204)
+                return Response(response=jsonify({'result': {'deleted_count': result.deleted_count}}),
+                                mimetype='application/json', status=204)
             elif result.deleted_count == 0:
-                return Response(mimetype='application/json', status=404)
+                return Response(response=jsonify({'result': {'deleted_count': result.deleted_count}}),
+                                mimetype='application/json', status=404)
 
 
 if __name__ == "__main__":
