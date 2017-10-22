@@ -42,10 +42,12 @@ chars_collection = client.game_characters.characters
 # json_util datetime config
 DEFAULT_JSON_OPTIONS.datetime_representation = json_util.DatetimeRepresentation.ISO8601
 DEFAULT_JSON_OPTIONS.json_mode = 1
+CHAR_IMG_PATH = 'static/img/'
 
 
 class Character:
     def __init__(self, name, surname, birth_date, species, health, mana, gold_pieces, playable, game):
+            self.id = ObjectId()
             self.name = name
             self.surname = surname
             self.birth_date = birth_date
@@ -55,8 +57,7 @@ class Character:
             self.gold_pieces = gold_pieces
             self.playable = playable
             self.game = game
-            self.picture_path = 'static/img/'
-            self.picture_file = name.lower() + '_' + surname.lower() + '.png'
+
 
     def insert(self):
         insert_result = chars_collection.insert_one({
@@ -69,7 +70,6 @@ class Character:
                 "gold_pieces": self.gold_pieces,
                 "playable": self.playable,
                 "game": self.game,
-                "picture_path": self.picture_path,
                 "picture_file": self.picture_file
         })
 
@@ -89,9 +89,8 @@ class Character:
                 "gold_pieces": c.gold_pieces,
                 "playable": c.playable,
                 "game": c.game,
-                "picture_path": c.picture_path,
-                "picture_file": c.picture_file
-            }}, upsert=True
+                # upsert (optional): If True, perform an insert if no documents match the filter.
+            }}, upsert=False
         )
         return update_result
 
@@ -112,6 +111,9 @@ class Character:
     def delete_by_name(self):
         delete_result = chars_collection.delete_one({'name': self.name})
         return delete_result
+
+    def create_file_name(self):
+        self.picture_file = CHAR_IMG_PATH + self.name.lower() + '_' + self.surname.lower() + '_' + self.id.__str__() + '.png'
 
 
 @app.route('/fill_in_db', methods=['GET'])
@@ -239,16 +241,16 @@ def character(char_id=None):
                  request.json['playable'],
                  request.json['game'],
             )
+            # http://api.mongodb.com/python/current/api/pymongo/results.html?highlight=updateresult#pymongo.results.UpdateResult
             result = c.update(char_id, c)
-
             if result.matched_count == 0:
-                return Response(response=jsonify({'return': {'matched_count': result.matched_count}}),
+                return Response(response=json_util.dumps({'return': {'matched_count': result.matched_count}}),
                                 mimetype='application/json', status=404)
             elif result.modified_count == 1:
-                return Response(response=jsonify({'result': {'modified_count': result.modified_count}}),
+                return Response(response=json_util.dumps({'result': {'modified_count': result.modified_count}}),
                                 mimetype='application/json', status=200)
             elif result.modified_count == 0:
-                return Response(response=jsonify({'result': {'modified_count': result.modified_count}}),
+                return Response(response=json_util.dumps({'result': {'modified_count': result.modified_count}}),
                                 mimetype='application/json', status=201)
 
         elif request.method == 'PATCH':
