@@ -70,7 +70,6 @@ class Character:
                 "gold_pieces": self.gold_pieces,
                 "playable": self.playable,
                 "game": self.game,
-                "picture_file": self.picture_file
         })
 
         return insert_result
@@ -169,10 +168,12 @@ def characters():
              }"""
     if request.method == 'GET':
         characters = chars_collection.find().sort([('species', ASCENDING)])
+        print(type(characters))
         result = []
         for char in characters:
             result.append(char)
         return Response(response=json_util.dumps({'result': result}), mimetype='application/json', status=200)
+        # return json_util.dumps({'result': result})
 
     elif request.method == 'POST':
         try:
