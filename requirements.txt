@@ -1,6 +1,0 @@
-Flask
-bson
-pymongo
-flask_pymongo
-flask_cors
-
